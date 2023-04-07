@@ -47,13 +47,7 @@ Your goal is to forecast **daily** demand for the month of January 2011 based on
 
 hourly.demand<-read_excel("./Competition copy/Data/load.xlsx")
 
-daily.demand <- hourly.demand %>% 
-  mutate(demand=sum(h1:h24)/24)
-
-
 ```
-
-
 
 
 ## WRANGLE/PROCESS THE DATASET
@@ -62,9 +56,33 @@ You will need to transform hourly data into daily data. See the Rmd file from Le
 
 Note that I provided hourly data. You shoudl take teh **average** of the 24 hours to obtain the daily load.
 
+```{r}
+
+daily.demand <- hourly.demand %>% 
+  pivot_longer(cols=3:26,
+               names_to="hourly.demand",
+               values_to="demand") %>% 
+  group_by(date) %>% 
+  summarise(daily_mean_demand=mean(demand))
+  
+
+```
+
+
 ## CREATE A TIME SERIES OBJECT
 
 After you process your dataset use the `msts()` function to create a time series object. You need to use `msts()` instead of `ts()` because your daily data will have more than one seasonal component.
+
+```{r}
+
+ts_demand_daily <- msts(daily.demand$daily_mean_demand, 
+                           seasonal.periods =c(7,365.25), #Note that we might also try using just 7 instead of both. Suggested in Lesson 10
+                           start=c(2005,1,1))
+
+ts_demand_daily %>% mstl() %>%
+  autoplot()
+
+```
 
 ## FIT MODELS TO YOUR DATA
 
