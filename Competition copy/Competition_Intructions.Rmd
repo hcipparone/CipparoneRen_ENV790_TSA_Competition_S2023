@@ -1,6 +1,6 @@
 ---
 title: "TSA: Forecasting Competition Instructions"
-author: "Luana Lima"
+author: "Caroline Ren and Hugh Cipparone"
 output: pdf_document
 always_allow_html: true
 editor_options: 
