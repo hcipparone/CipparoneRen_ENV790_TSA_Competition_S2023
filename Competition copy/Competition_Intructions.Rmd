@@ -34,6 +34,18 @@ editor_options:
 library(tidyverse)
 library(forecast)
 library(readxl)
+library(tseries)
+library(stats)
+library(lubridate)
+library(ggplot2)
+library(Kendall)
+library(outliers)
+library(tidyverse)
+
+#install.packages("smooth")
+library(smooth)
+
+library(rio)
 
 ```
 
@@ -84,21 +96,76 @@ ts_demand_daily %>% mstl() %>%
 
 ```
 
+```{r}
+#ACF and PACF plots
+par(mfrow=c(1,2))
+ACF_Plot <- Acf(daily.demand$daily_mean_demand, lag = 40, plot = TRUE)
+PACF_Plot <- Pacf(daily.demand$daily_mean_demand, lag = 40)
+par(mfrow=c(1,1))
+```
+
+
 ## FIT MODELS TO YOUR DATA
 
 Fit models to your dataset considering the period Jan 1st 2005 to Dec 31st 2009. 
+
+```{r}
+#Model 1: Arithmetic mean on original data
+MEAN_seas <- meanf(y = ts_demand_daily, h = 30)
+plot(MEAN_seas)
+
+#Model 2: Seasonal naive on original data
+SNAIVE_seas <- snaive(ts_demand_daily, h=30)
+plot(SNAIVE_seas)
+
+# Model 3:  SARIMA on original data
+SARIMA_autofit <- auto.arima(ts_demand_daily)
+print(SARIMA_autofit)
+```
 
 ## FORECAST DAILY DEMAND FOR 2010 
 
 Using the models from previous section, forecast daily demand for the period Jan 1st 2010 to Feb 28 2010. Based on the models you developed which model(s) is(are) generating good forecast? 
 
+```{r}
+#Model 1: Arithmetic mean on original data
+MEAN_seas_2010 <- meanf(y = ts_demand_daily, h = 1)
+plot(MEAN_seas)
+
+#Model 2: Seasonal naive on original data
+SNAIVE_seas_2010 <- snaive(ts_demand_daily, h=1)
+plot(SNAIVE_seas)
+
+# Model 3:  SARIMA on original data
+SARIMA_forecast_2010 <- forecast(object = SARIMA_autofit, h = 1)
+plot(SARIMA_forecast)
+```
+
 ## FORECAST DAILY DEMAND FOR 2011
 
 Just for the good model(s) you will **re-run** the model but now using the entire dataset (2005-2010) for model fitting and forecast Jan 1st 2011 to Feb 28 2011.
 
+```{r}
+#Model 1: Arithmetic mean on original data
+MEAN_seas_2011 <- meanf(y = ts_demand_daily, h = 365)
+plot(MEAN_seas)
+
+#Model 2: Seasonal naive on original data
+SNAIVE_seas_2011 <- snaive(ts_demand_daily, h=365)
+plot(SNAIVE_seas)
+
+# Model 3:  SARIMA on original data
+SARIMA_forecast_2011 <- forecast(object = SARIMA_autofit, h = 365)
+plot(SARIMA_forecast)
+```
+
 ## CREATE AN EXCEL FILE WITH FORECAST
 
 Look at the excel file in your Output folder name "submission_template.csv". You will need to create your own output file with forecast for January 2011. Your file needs to be in the format of the submission template. If your forecast is a probability distribution function, consider the mean to be the point forecast.
+
+```{r}
+export(SARIMA_forecast_2011, file="./Competition copy/Output/submission.xlsx")
+```
 
 ## LOAD TEMPLATE IN KAGGLE
 
