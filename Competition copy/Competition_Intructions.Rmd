@@ -70,13 +70,12 @@ Note that I provided hourly data. You shoudl take teh **average** of the 24 hour
 
 ```{r}
 
-daily.demand <- hourly.demand %>% 
-  pivot_longer(cols=3:26,
-               names_to="hourly.demand",
-               values_to="demand") %>% 
-  group_by(date) %>% 
-  summarise(daily_mean_demand=mean(demand))
-  
+demand<-rowMeans(hourly.demand[,3:26])
+
+daily.demand<-cbind(hourly.demand,demand)
+
+daily.demand.edit<-daily.demand %>% 
+  select(date,demand)
 
 ```
 
@@ -87,8 +86,8 @@ After you process your dataset use the `msts()` function to create a time series
 
 ```{r}
 
-ts_demand_daily <- msts(daily.demand$daily_mean_demand, 
-                           seasonal.periods =c(7,365.25), #Note that we might also try using just 7 instead of both. Suggested in Lesson 10
+ts_demand_daily <- msts(daily.demand.edit$demand, 
+                           seasonal.periods =c(7,365.25), 
                            start=c(2005,1,1))
 
 ts_demand_daily %>% mstl() %>%
@@ -121,6 +120,16 @@ plot(SNAIVE_seas)
 # Model 3:  SARIMA on original data
 SARIMA_autofit <- auto.arima(ts_demand_daily)
 print(SARIMA_autofit)
+
+#Model 4:
+
+
+#Model 5:
+
+
+#Model 6:
+
+
 ```
 
 ## FORECAST DAILY DEMAND FOR 2010 
