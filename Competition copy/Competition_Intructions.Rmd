@@ -113,23 +113,20 @@ Fit models to your dataset considering the period Jan 1st 2005 to Dec 31st 2009.
 ts_training<-window(ts_demand_daily, start=2005, end=2009)
 
 #Model 1: Arithmetic mean on training data
-MEAN_seas <- meanf(y = ts_training, h = 30)
-plot(MEAN_seas)
+MEAN_seas <- meanf(y = ts_training, h = 365)
 
 #Model 2: Seasonal naive on training data
-SNAIVE_seas <- snaive(ts_training, h=30)
-plot(SNAIVE_seas)
+SNAIVE_seas <- snaive(ts_training, h=365)
 
 # Model 3:  SARIMA on training data
 SARIMA_autofit <- auto.arima(ts_training)
-print(SARIMA_autofit)
 
 #Model 4: STL + ETS model on training data
 ETS_fit <-  stlf(ts_act_power_daily_train,h=365)
 
 
-#Model 5:ARIMA with Fourier on training data
-ARIMA_Four_fit <- auto.arima(ts_act_power_daily_train, 
+#Model 5: ARIMA with Fourier on training data (seasonal = False, K=c(2,12))
+ARIMA_Four_fit <- auto.arima(ts_training, 
                              seasonal=FALSE, 
                              lambda=0,
                              xreg=fourier(ts_act_power_daily_train, 
@@ -137,15 +134,37 @@ ARIMA_Four_fit <- auto.arima(ts_act_power_daily_train,
                              )
 
 
+#Model 6: ARIMA with Fourier on training data (seasonal = False, K=c(2,6))
+ARIMA_Four_fit <- auto.arima(ts_training, 
+                             seasonal=FALSE, 
+                             lambda=0,
+                             xreg=fourier(ts_act_power_daily_train, 
+                                          K=c(2,6))
+                             )
 
-#Model 6:TBATS on training data
-TBATS_fit <- tbats(ts_act_power_daily_train)
+#Model 7: ARIMA with Fourier on training data (seasonal = TRUE, K=c(2,6))
+ARIMA_Four_fit <- auto.arima(ts_training, 
+                             seasonal=TRUE, 
+                             lambda=0,
+                             xreg=fourier(ts_act_power_daily_train, 
+                                          K=c(2,6))
+                             )
+
+#Model 8: ARIMA with Fourier on training data (seasonal = TRUE, K=c(2,12))
+ARIMA_Four_fit <- auto.arima(ts_training, 
+                             seasonal=TRUE, 
+                             lambda=0,
+                             xreg=fourier(ts_act_power_daily_train, 
+                                          K=c(2,12))
+                             )
+
+#Model 9: TBATS on training data
+TBATS_fit <- tbats(ts_training)
 
 
-#Model 7: 
+#Model 10: Neural Network with Fourier on training data
+NN_fit <- nnetar(ts_training,p=1,P=0,xreg=fourier(ts_training, K=c(2,12)))
 
-
-#Model 8:
 
 
 ```
@@ -166,6 +185,25 @@ plot(SNAIVE_seas)
 # Model 3:  SARIMA on original data
 SARIMA_forecast_2010 <- forecast(object = SARIMA_autofit, h = 1)
 plot(SARIMA_forecast)
+
+
+
+
+
+
+
+
+
+ARIMA_Four_for <- forecast(ARIMA_Four_fit,
+                           xreg=fourier(ts_act_power_daily_train,
+                                        K=c(2,12), #two different seasonal means models over 12 months)
+                                        h=365), #forecast over next 365 days - need the xreg to capture the fourier aspect of this
+                           h=365
+                           ) 
+
+
+
+
 
 
 ```
