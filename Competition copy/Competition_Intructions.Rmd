@@ -109,8 +109,11 @@ par(mfrow=c(1,1))
 Fit models to your dataset considering the period Jan 1st 2005 to Dec 31st 2009. 
 
 ```{r}
+
+ts_training<-window(ts_demand_daily, start=2005, end=2009)
+
 #Model 1: Arithmetic mean on original data
-MEAN_seas <- meanf(y = ts_demand_daily, h = 30)
+MEAN_seas <- meanf(y = ts_training, h = 30)
 plot(MEAN_seas)
 
 #Model 2: Seasonal naive on original data
@@ -121,13 +124,16 @@ plot(SNAIVE_seas)
 SARIMA_autofit <- auto.arima(ts_demand_daily)
 print(SARIMA_autofit)
 
-#Model 4:
+#Model 4: 
 
 
 #Model 5:
 
 
 #Model 6:
+
+
+#Model 7: 
 
 
 ```
@@ -148,6 +154,8 @@ plot(SNAIVE_seas)
 # Model 3:  SARIMA on original data
 SARIMA_forecast_2010 <- forecast(object = SARIMA_autofit, h = 1)
 plot(SARIMA_forecast)
+
+
 ```
 
 ## FORECAST DAILY DEMAND FOR 2011
