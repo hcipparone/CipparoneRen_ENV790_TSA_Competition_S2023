@@ -112,28 +112,40 @@ Fit models to your dataset considering the period Jan 1st 2005 to Dec 31st 2009.
 
 ts_training<-window(ts_demand_daily, start=2005, end=2009)
 
-#Model 1: Arithmetic mean on original data
+#Model 1: Arithmetic mean on training data
 MEAN_seas <- meanf(y = ts_training, h = 30)
 plot(MEAN_seas)
 
-#Model 2: Seasonal naive on original data
-SNAIVE_seas <- snaive(ts_demand_daily, h=30)
+#Model 2: Seasonal naive on training data
+SNAIVE_seas <- snaive(ts_training, h=30)
 plot(SNAIVE_seas)
 
-# Model 3:  SARIMA on original data
-SARIMA_autofit <- auto.arima(ts_demand_daily)
+# Model 3:  SARIMA on training data
+SARIMA_autofit <- auto.arima(ts_training)
 print(SARIMA_autofit)
 
-#Model 4: 
+#Model 4: STL + ETS model on training data
+ETS_fit <-  stlf(ts_act_power_daily_train,h=365)
 
 
-#Model 5:
+#Model 5:ARIMA with Fourier on training data
+ARIMA_Four_fit <- auto.arima(ts_act_power_daily_train, 
+                             seasonal=FALSE, 
+                             lambda=0,
+                             xreg=fourier(ts_act_power_daily_train, 
+                                          K=c(2,12))
+                             )
 
 
-#Model 6:
+
+#Model 6:TBATS on training data
+TBATS_fit <- tbats(ts_act_power_daily_train)
 
 
 #Model 7: 
+
+
+#Model 8:
 
 
 ```
@@ -144,7 +156,7 @@ Using the models from previous section, forecast daily demand for the period Jan
 
 ```{r}
 #Model 1: Arithmetic mean on original data
-MEAN_seas_2010 <- meanf(y = ts_demand_daily, h = 1)
+MEAN_seas_2010 <- forecast(MEAN_seas, h=365)
 plot(MEAN_seas)
 
 #Model 2: Seasonal naive on original data
