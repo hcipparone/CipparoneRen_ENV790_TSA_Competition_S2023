@@ -120,50 +120,34 @@ Arithmetic_mean <- meanf(ts_training, h=365)
 SNAIVE_seas <- snaive(ts_training, 365)
 
 # Model 3:  SARIMA on training data
-SARIMA_autofit <- auto.arima(ts_training)
+SARIMA_autofit_training <- auto.arima(ts_training)
 
 #Model 4: STL + ETS model on training data
 ETS_fit <-  stlf(ts_training,h=365)
 
 
 #Model 5: ARIMA with Fourier on training data (seasonal = False, K=c(2,12))
-ARIMA_Four_fit <- auto.arima(ts_training, 
+ARIMA_Four_fit_1 <- auto.arima(ts_training, 
                              seasonal=FALSE, 
                              lambda=0,
-                             xreg=fourier(ts_act_power_daily_train, 
+                             xreg=fourier(ts_training, 
                                           K=c(2,12))
                              )
 
 
-#Model 6: ARIMA with Fourier on training data (seasonal = False, K=c(2,6))
-ARIMA_Four_fit <- auto.arima(ts_training, 
-                             seasonal=FALSE, 
-                             lambda=0,
-                             xreg=fourier(ts_act_power_daily_train, 
-                                          K=c(2,6))
-                             )
-
-#Model 7: ARIMA with Fourier on training data (seasonal = TRUE, K=c(2,6))
-ARIMA_Four_fit <- auto.arima(ts_training, 
+#Model 6: ARIMA with Fourier on training data (seasonal = TRUE, K=c(2,12))
+ARIMA_Four_fit_2 <- auto.arima(ts_training, 
                              seasonal=TRUE, 
                              lambda=0,
-                             xreg=fourier(ts_act_power_daily_train, 
-                                          K=c(2,6))
-                             )
-
-#Model 8: ARIMA with Fourier on training data (seasonal = TRUE, K=c(2,12))
-ARIMA_Four_fit <- auto.arima(ts_training, 
-                             seasonal=TRUE, 
-                             lambda=0,
-                             xreg=fourier(ts_act_power_daily_train, 
+                             xreg=fourier(ts_training, 
                                           K=c(2,12))
                              )
 
-#Model 9: TBATS on training data
+#Model 7: TBATS on training data
 TBATS_fit <- tbats(ts_training)
 
 
-#Model 10: Neural Network with Fourier on training data
+#Model 8: Neural Network with Fourier on training data
 NN_fit <- nnetar(ts_training,p=1,P=0,xreg=fourier(ts_training, K=c(2,12)))
 
 
@@ -178,17 +162,36 @@ Using the models from previous section, forecast daily demand for the period Jan
 
 # Model 1: Arithmetic mean on training data - 2010 forecast already generated
 
-# Model 2: Seasonal naive on original data - 2010 forecast already generated
+# Model 2: Seasonal naive on training data - 2010 forecast already generated
 
-# Model 3:  SARIMA on original data
-SARIMA_forecast_2010 <- forecast(object = SARIMA_autofit, h = 365)
+# Model 3:  SARIMA on training data
+SARIMA_forecast_2010 <- forecast(object = SARIMA_autofit_training, h = 365)
 
 # Model 4: STL + ETS - 2010 forecast already generated
 
 # Model 5: ARIMA with Fourier on training data (seasonal = False, K=c(2,12))
+ARIMA_Four_1_for <- forecast(ARIMA_Four_fit_1,
+                           xreg=fourier(ts_training,
+                                        K=c(2,12), #two different seasonal means models over 12 months)
+                                        h=365), #forecast over next 365 days - need the xreg to capture the fourier aspect of this
+                           h=365
+                           ) 
 
+#Model 6: 
 
+ARIMA_Four_2_for <- forecast(ARIMA_Four_fit_2,
+                           xreg=fourier(ts_training,
+                                        K=c(2,12), #two different seasonal means models over 12 months)
+                                        h=365), #forecast over next 365 days - need the xreg to capture the fourier aspect of this
+                           h=365
+                           ) 
 
+#Model 7
+TBATS_for <- forecast(TBATS_fit, h=365)
+
+#Model 8
+NN_for <- forecast(NN_fit, h=365,xreg=fourier(ts_training, 
+                                          K=c(2,12),h=365))
 
 
 #Visualizing to determine generally good models
@@ -197,23 +200,14 @@ autoplot(ts_demand_daily) +
   autolayer(SNAIVE_seas, series="SEAS",PI=FALSE)+
   autolayer(SARIMA_forecast_2010, series="SARIMA 2010", PI=FALSE)+
   autolayer(ETS_fit, series="STL + ETS", PI=FALSE)+
+  autolayer(ARIMA_Four_1_for, series="ARIMA_Four_1", PI=FALSE)+
+  autolayer(ARIMA_Four_2_for, series="ARIMA_Four_2", PI=FALSE)+
+  autolayer(TBATS_for, series="TBATS", PI=FALSE)+
+  autolayer(NN_for, series="NN", PI=FALSE)+
   ylab("demand") 
 
 
-
-
-
-ARIMA_Four_for <- forecast(ARIMA_Four_fit,
-                           xreg=fourier(ts_act_power_daily_train,
-                                        K=c(2,12), #two different seasonal means models over 12 months)
-                                        h=365), #forecast over next 365 days - need the xreg to capture the fourier aspect of this
-                           h=365
-                           ) 
-
-
-
-
-
+#Most of these look pretty good visually - the only obviously bad ones are the SARIMA, TBATS and the Arithmetic
 
 ```
 
@@ -222,17 +216,58 @@ ARIMA_Four_for <- forecast(ARIMA_Four_fit,
 Just for the good model(s) you will **re-run** the model but now using the entire dataset (2005-2010) for model fitting and forecast Jan 1st 2011 to Feb 28 2011.
 
 ```{r}
-#Model 1: Arithmetic mean on original data
-MEAN_seas_2011 <- meanf(y = ts_demand_daily, h = 365)
-plot(MEAN_seas)
+
+#SARIMA
+SARIMA_autofit_2011<-auto.arima(ts_demand_daily)
+SARIMA_forecast_2011<-forecast(object = SARIMA_autofit_2011, h = 365)
 
 #Model 2: Seasonal naive on original data
 SNAIVE_seas_2011 <- snaive(ts_demand_daily, h=365)
-plot(SNAIVE_seas)
 
-# Model 3:  SARIMA on original data
-SARIMA_forecast_2011 <- forecast(object = SARIMA_autofit, h = 365)
-plot(SARIMA_forecast)
+# Model 4: STL + ETS
+ETS_fit_2011 <-  stlf(ts_demand_daily,h=365)
+
+# Model 5: ARIMA with Fourier on original data (seasonal = False, K=c(2,12))
+
+ARIMA_Four_fit_1_2011 <- auto.arima(ts_demand_daily, 
+                             seasonal=FALSE, 
+                             lambda=0,
+                             xreg=fourier(ts_demand_daily, 
+                                          K=c(2,12))
+                             )
+
+
+ARIMA_Four_1_for_2011 <- forecast(ARIMA_Four_fit_1_2011,
+                           xreg=fourier(ts_demand_daily,
+                                        K=c(2,12), #two different seasonal means models over 12 months)
+                                        h=365), #forecast over next 365 days - need the xreg to capture the fourier aspect of this
+                           h=365
+                           ) 
+
+#Model 6: 
+
+ARIMA_Four_fit_2_2011 <- auto.arima(ts_demand_daily, 
+                             seasonal=TRUE, 
+                             lambda=0,
+                             xreg=fourier(ts_demand_daily, 
+                                          K=c(2,12))
+                             )
+
+
+ARIMA_Four_2_for_2011 <- forecast(ARIMA_Four_fit_2_2011,
+                           xreg=fourier(ts_demand_daily,
+                                        K=c(2,12), #two different seasonal means models over 12 months)
+                                        h=365), #forecast over next 365 days - need the xreg to capture the fourier aspect of this
+                           h=365
+                           ) 
+
+#Model 8
+NN_fit_2011 <- nnetar(ts_demand_daily,p=1,P=0,xreg=fourier(ts_demand_daily, K=c(2,12)))
+
+
+NN_for_2011 <- forecast(NN_fit_2011, h=365,xreg=fourier(ts_demand_daily, 
+                                          K=c(2,12),h=365))
+
 ```
 
 ## CREATE AN EXCEL FILE WITH FORECAST
@@ -240,7 +275,18 @@ plot(SARIMA_forecast)
 Look at the excel file in your Output folder name "submission_template.csv". You will need to create your own output file with forecast for January 2011. Your file needs to be in the format of the submission template. If your forecast is a probability distribution function, consider the mean to be the point forecast.
 
 ```{r}
-export(SARIMA_forecast_2011, file="./Competition copy/Output/submission.xlsx")
+export(SARIMA_forecast_2011, file="./Competition copy/Output/submission_1.xlsx")
+
+export(SNAIVE_seas_2011, file="./Competition copy/Output/submission_2.xlsx")
+
+export(ETS_fit_2011, file="./Competition copy/Output/submission_3.xlsx")
+
+export(ARIMA_Four_1_for_2011, file="./Competition copy/Output/submission_4.xlsx")
+
+export(ARIMA_Four_2_for_2011, file="./Competition copy/Output/submission_5.xlsx")
+
+export(NN_for_2011, file="./Competition copy/Output/submission_6.xlsx")
+
 ```
 
 ## LOAD TEMPLATE IN KAGGLE
