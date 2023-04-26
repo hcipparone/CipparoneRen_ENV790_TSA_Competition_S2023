@@ -110,17 +110,17 @@ Fit models to your dataset considering the period Jan 1st 2005 to Dec 31st 2009.
 
 ```{r}
 
-ts_training<-window(ts_demand_daily, start=2005, end=2009)
+ts_training<-window(ts_demand_daily, start=2005, end=2010)
 
 
 #Model 1: Seasonal naive on training data
-SNAIVE_seas <- snaive(ts_training, h=365)
+SNAIVE_seas <- snaive(ts_training, 365)
 
 # Model 2:  SARIMA on training data
 SARIMA_autofit <- auto.arima(ts_training)
 
 #Model 3: STL + ETS model on training data
-ETS_fit <-  stlf(ts_act_power_daily_train,h=365)
+ETS_fit <-  stlf(ts_training,h=365)
 
 
 #Model 4: ARIMA with Fourier on training data (seasonal = False, K=c(2,12))
@@ -171,18 +171,23 @@ NN_fit <- nnetar(ts_training,p=1,P=0,xreg=fourier(ts_training, K=c(2,12)))
 Using the models from previous section, forecast daily demand for the period Jan 1st 2010 to Feb 28 2010. Based on the models you developed which model(s) is(are) generating good forecast? 
 
 ```{r}
-#Model 1: Arithmetic mean on original data
-MEAN_seas_2010 <- forecast(MEAN_seas, h=365)
 
-#Model 2: Seasonal naive on original data
-SNAIVE_seas_2010 <- forecast(SNAIVE_seas, h=1)
 
-# Model 3:  SARIMA on original data
+#Model 1: Seasonal naive on original data - 2010 forecast already generated
+
+# Model 2:  SARIMA on original data
 SARIMA_forecast_2010 <- forecast(object = SARIMA_autofit, h = 365)
 
+# Model 3: STL + ETS - 2010 forecast already generated
 
+#Model 4: ARIMA with Fourier on training data (seasonal = False, K=c(2,12))
+
+
+#Visualizing to determine generally good models
 autoplot(ts_demand_daily) +
-  autolayer(MEAN_seas_2010, series="SEAS",PI=FALSE)+
+  autolayer(SNAIVE_seas, series="SEAS",PI=FALSE)+
+  autolayer(SARIMA_forecast_2010, series="SARIMA 2010", PI=FALSE)+
+  autolayer(ETS_fit, series="STL + ETS", PI=FALSE)+
   ylab("demand") 
 
 
