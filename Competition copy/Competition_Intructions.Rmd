@@ -95,15 +95,6 @@ ts_demand_daily %>% mstl() %>%
 
 ```
 
-```{r}
-#ACF and PACF plots
-par(mfrow=c(1,2))
-ACF_Plot <- Acf(daily.demand$daily_mean_demand, lag = 40, plot = TRUE)
-PACF_Plot <- Pacf(daily.demand$daily_mean_demand, lag = 40)
-par(mfrow=c(1,1))
-```
-
-
 ## FIT MODELS TO YOUR DATA
 
 Fit models to your dataset considering the period Jan 1st 2005 to Dec 31st 2009. 
@@ -273,6 +264,87 @@ NN_for_2011 <- forecast(NN_fit_2011, h=365,xreg=fourier(ts_demand_daily,
 ## CREATE AN EXCEL FILE WITH FORECAST
 
 Look at the excel file in your Output folder name "submission_template.csv". You will need to create your own output file with forecast for January 2011. Your file needs to be in the format of the submission template. If your forecast is a probability distribution function, consider the mean to be the point forecast.
+
+```{r}
+
+#create dates for the date column
+date<-seq(ymd("2011-01-01"),ymd("2011-12-31"), by="days")
+
+#select out the mean from the forecast
+
+#SARIMA
+sarima.forecast.mean<-SARIMA_forecast_2011$mean
+
+#SNAIVE
+snaive.forecast.mean<-SNAIVE_seas_2011$mean
+
+#STL + ETS
+stl.ets.forecast.mean<-ETS_fit_2011$mean
+
+#Arima Fourier 1
+arima.1.forecast.mean<-ARIMA_Four_1_for_2011$mean
+
+#ARIMA Fourier 2
+arima.2.forecast.mean<-ARIMA_Four_2_for_2011$mean
+
+#NN
+nn.forecast.mean<-NN_for_2011$mean
+
+#create the CSVs in the same format
+
+#SARIMA
+sarima.final.forecast<-data.frame(date,sarima.forecast.mean) %>% 
+  slice(1:59) %>% 
+  rename(load=sarima.forecast.mean) %>% 
+  select(date,load)
+
+#SNAIVE
+snaive.final.forecast<-data.frame(date,snaive.forecast.mean) %>% 
+  slice(1:59) %>% 
+  rename(load=snaive.forecast.mean) %>% 
+  select(date,load)
+
+#STL + ETS
+stl.ets.final.forecast<-data.frame(date,stl.ets.forecast.mean) %>% 
+  slice(1:59) %>% 
+  rename(load=stl.ets.forecast.mean) %>% 
+  select(date,load)
+
+#ARIMA Fourier 1
+arima.1.final.forecast<-data.frame(date,arima.1.forecast.mean) %>% 
+  slice(1:59) %>% 
+  rename(load=arima.1.forecast.mean) %>% 
+  select(date,load)
+
+#ARIMA Fourier 2
+arima.2.final.forecast<-data.frame(date, arima.2.forecast.mean) %>% 
+  slice(1:59) %>% 
+  rename(load=arima.2.forecast.mean) %>% 
+  select(date,load)
+
+#NN
+nn.final.forecast<-data.frame(date, nn.forecast.mean) %>% 
+  slice(1:59) %>% 
+  rename(load=nn.forecast.mean) %>% 
+  select(date,load)
+
+#export the CSVs
+write.csv(sarima.final.forecast, file="./Competition copy/Output/submission_1.csv", row.names = FALSE)
+
+write.csv(snaive.final.forecast, file="./Competition copy/Output/submission_2.csv", row.names = FALSE)
+
+write.csv(stl.ets.final.forecast, file="./Competition copy/Output/submission_3.csv", row.names = FALSE)
+
+write.csv(arima.1.final.forecast, file="./Competition copy/Output/submission_4.csv", row.names = FALSE)
+
+write.csv(arima.2.final.forecast, file="./Competition copy/Output/submission_5.csv", row.names = FALSE)
+
+write.csv(nn.final.forecast, file="./Competition copy/Output/submission_5.csv", row.names = FALSE)
+
+
+```
+
+
 
 ```{r}
 export(SARIMA_forecast_2011, file="./Competition copy/Output/submission_1.xlsx")
