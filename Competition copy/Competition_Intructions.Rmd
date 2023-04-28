@@ -301,7 +301,7 @@ ex.regs<-data.frame(fourier(ts_demand_daily, K=c(2,12)), daily.temp.final, daily
 
 #Model 9
 
-NN_fit_2011_temp <- nnetar(ts_demand_daily,p=1,P=0,xreg=ex.regs[,1:29])
+NN_fit_2011_temp <- nnetar(ts_demand_daily,p=1,P=0,xreg=ex.regs[,1:28])
 
 
 NN_for_2011_temp <- forecast(NN_fit_2011_temp, h=365,xreg=ex.regs[,1:29])
