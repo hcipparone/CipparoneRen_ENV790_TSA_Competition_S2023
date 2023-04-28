@@ -58,6 +58,9 @@ Your goal is to forecast **daily** demand for the month of January 2011 based on
 ```{r}
 
 hourly.demand<-read_excel("./Competition copy/Data/load.xlsx")
+temp<-read_excel("./Competition copy/Data/temperature.xlsx")
+humidity<-read_excel("./Competition copy/Data/relative_humidity.xlsx")
+
 
 ```
 
@@ -69,13 +72,42 @@ You will need to transform hourly data into daily data. See the Rmd file from Le
 Note that I provided hourly data. You shoudl take teh **average** of the 24 hours to obtain the daily load.
 
 ```{r}
-
+#Create 24 hour averages for load
 demand<-rowMeans(hourly.demand[,3:26])
 
 daily.demand<-cbind(hourly.demand,demand)
 
 daily.demand.edit<-daily.demand %>% 
   select(date,demand)
+
+#create 24 hour averages for temperature
+temp.sensor.mean<-rowMeans(temp[,3:30])
+
+daily.temp<-cbind(temp,temp.sensor.mean)
+
+daily.temp.edit<-daily.temp %>% 
+  select(date,temp.sensor.mean,hr) %>% 
+  pivot_wider(names_from = hr, values_from = temp.sensor.mean) 
+
+temp.daily.mean<-rowMeans(daily.temp.edit[,2:25])
+
+daily.temp.final<-cbind(daily.temp.edit,temp.daily.mean) %>% 
+  select(date,temp.daily.mean)
+
+#create 24 hour averages for humidity
+
+humid.sensor.mean<-rowMeans(humidity[,3:30])
+
+daily.humid<-cbind(humidity,humid.sensor.mean)
+
+daily.humid.edit<-daily.humid %>% 
+  select(date,humid.sensor.mean,hr) %>% 
+  pivot_wider(names_from = hr, values_from = humid.sensor.mean) 
+
+humid.daily.mean<-rowMeans(daily.humid.edit[,2:25])
+
+daily.humid.final<-cbind(daily.humid.edit,humid.daily.mean) %>% 
+  select(date,humid.daily.mean)
 
 ```
 
@@ -259,6 +291,19 @@ NN_fit_2011 <- nnetar(ts_demand_daily,p=1,P=0,xreg=fourier(ts_demand_daily, K=c(
 NN_for_2011 <- forecast(NN_fit_2011, h=365,xreg=fourier(ts_demand_daily, 
                                           K=c(2,12),h=365))
 
+#Model 9
+NN_fit_2011_temp_humid <- nnetar(ts_demand_daily,p=1,P=0,xreg=fourier(ts_demand_daily, K=c(2,12)), xreg)
+
+
+NN_for_2011_temp_humid <- forecast(NN_fit_2011, h=365,xreg=fourier(ts_demand_daily, 
+                                          K=c(2,12),h=365))
+
+#Model 10
+
+
+
+#Model 11
+
 ```
 
 ## CREATE AN EXCEL FILE WITH FORECAST
@@ -341,23 +386,6 @@ write.csv(arima.2.final.forecast, file="./Competition copy/Output/submission_5.c
 
 write.csv(nn.final.forecast, file="./Competition copy/Output/submission_5.csv", row.names = FALSE)
 
-
-```
-
-
-
-```{r}
-export(SARIMA_forecast_2011, file="./Competition copy/Output/submission_1.xlsx")
-
-export(SNAIVE_seas_2011, file="./Competition copy/Output/submission_2.xlsx")
-
-export(ETS_fit_2011, file="./Competition copy/Output/submission_3.xlsx")
-
-export(ARIMA_Four_1_for_2011, file="./Competition copy/Output/submission_4.xlsx")
-
-export(ARIMA_Four_2_for_2011, file="./Competition copy/Output/submission_5.xlsx")
-
-export(NN_for_2011, file="./Competition copy/Output/submission_6.xlsx")
 
 ```
 
