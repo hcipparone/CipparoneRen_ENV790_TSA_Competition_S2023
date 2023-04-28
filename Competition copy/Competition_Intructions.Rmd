@@ -291,18 +291,35 @@ NN_fit_2011 <- nnetar(ts_demand_daily,p=1,P=0,xreg=fourier(ts_demand_daily, K=c(
 NN_for_2011 <- forecast(NN_fit_2011, h=365,xreg=fourier(ts_demand_daily, 
                                           K=c(2,12),h=365))
 
+
+#Realized through submission to Kaggle that the neural network model is the best. Now adding temperature and humidity external regressors to improve it.
+
+#Create dataframe with external regressors
+ex.regs<-data.frame(fourier(ts_demand_daily, K=c(2,12)), daily.temp.final, daily.humid.final) %>% 
+  select(!c(date,date.1))
+
+
 #Model 9
+
+NN_fit_2011_temp <- nnetar(ts_demand_daily,p=1,P=0,xreg=ex.regs[,1:29])
+
+
+NN_for_2011_temp <- forecast(NN_fit_2011_temp, h=365,xreg=ex.regs[,1:29])
+
+#Model 10
+NN_fit_2011_humid <- nnetar(ts_demand_daily,p=1,P=0,xreg=fourier(ts_demand_daily, K=c(2,12)), xreg)
+
+
+NN_for_2011_humid <- forecast(NN_fit_2011, h=365,xreg=fourier(ts_demand_daily, 
+                                          K=c(2,12),h=365))
+
+
+#Model 11
 NN_fit_2011_temp_humid <- nnetar(ts_demand_daily,p=1,P=0,xreg=fourier(ts_demand_daily, K=c(2,12)), xreg)
 
 
 NN_for_2011_temp_humid <- forecast(NN_fit_2011, h=365,xreg=fourier(ts_demand_daily, 
                                           K=c(2,12),h=365))
-
-#Model 10
-
-
-
-#Model 11
 
 ```
 
