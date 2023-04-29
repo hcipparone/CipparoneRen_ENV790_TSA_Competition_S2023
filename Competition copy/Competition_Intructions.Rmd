@@ -122,6 +122,10 @@ ts_demand_daily <- msts(daily.demand.edit$demand,
                            seasonal.periods =c(7,365.25), 
                            start=c(2005,1,1))
 
+ts_demand_daily_7 <- msts(daily.demand.edit$demand, 
+                           seasonal.periods =c(7), 
+                           start=c(2005,1,1))
+
 ts_demand_daily %>% mstl() %>%
   autoplot()
 
@@ -291,19 +295,37 @@ NN_fit_2011 <- nnetar(ts_demand_daily,p=1,P=0,xreg=fourier(ts_demand_daily, K=c(
 NN_for_2011 <- forecast(NN_fit_2011, h=365,xreg=fourier(ts_demand_daily, 
                                           K=c(2,12),h=365))
 
+
+
+
+##############################################################
+
+#Test models below:
+
+#NN with only a 7 day seasonal period time series instead of 365
+NN_fit_2011_7 <- nnetar(ts_demand_daily_7,p=1,P=0,xreg=fourier(ts_demand_daily_7, K=3))
+
+
+NN_for_2011_7 <- forecast(NN_fit_2011_7, h=365,xreg=fourier(ts_demand_daily_7, 
+                                          K=3,h=365))
+
+
+#SNAIVE with only a 7 day seasonal period time series instead of 365
+SNAIVE_seas_2011_7 <- snaive(ts_demand_daily_7, h=365)
+
+
+#Average of two best model outputs - SNAIVE and Neural Network - see in next chunk
+
 #TBATS
 
+TBATS_fit_2011 <- tbats(ts_demand_daily)
 
+TBATS_for_2011 <- forecast(TBATS_fit_2011, h=365)
 
 
 #Arithmetic
 
-
-
-
-#State Space
-
-
+Arithmetic_mean_2011 <- meanf(ts_demand_daily, h=365)
 
 ```
 
@@ -335,6 +357,22 @@ arima.2.forecast.mean<-ARIMA_Four_2_for_2011$mean
 
 #NN
 nn.forecast.mean<-NN_for_2011$mean
+
+#NN with 7
+nn.7.forecast.mean<-NN_for_2011_7$mean
+
+#SNAIVE with 7
+snaive.7.forecast.mean<-SNAIVE_seas_2011_7$mean
+
+#Average of NN and SNAIVE (standard)
+nn.snaive.forecast.mean<-(snaive.forecast.mean + nn.forecast.mean)/2
+
+#TBATS
+tbats.forecast.mean<-TBATS_for_2011$mean
+
+#Arithmetic
+arithmetic.forecast.mean<-Arithmetic_mean_2011$mean
+
 
 #create the CSVs in the same format
 
@@ -374,6 +412,38 @@ nn.final.forecast<-data.frame(date, nn.forecast.mean) %>%
   rename(load=nn.forecast.mean) %>% 
   select(date,load)
 
+#NN with 7
+nn.7.final.forecast<-data.frame(date, nn.7.forecast.mean) %>% 
+  slice(1:59) %>% 
+  rename(load=nn.7.forecast.mean) %>% 
+  select(date,load)
+
+#SNAIVE with 7
+snaive.7.final.forecast<-data.frame(date,snaive.7.forecast.mean) %>% 
+  slice(1:59) %>% 
+  rename(load=snaive.7.forecast.mean) %>% 
+  select(date,load)
+
+#NN and SNAIVE Average
+nn.snaive.final.forecast<-data.frame(date,nn.snaive.forecast.mean) %>% 
+  slice(1:59) %>% 
+  rename(load=nn.snaive.forecast.mean) %>% 
+  select(date,load)
+
+#TBATS
+tbats.final.forecast<-data.frame(date,tbats.forecast.mean) %>% 
+  slice(1:59) %>% 
+  rename(load=tbats.forecast.mean) %>% 
+  select(date,load)
+
+#Arithmetic
+arithmetic.final.forecast<-data.frame(date,arithmetic.forecast.mean) %>% 
+  slice(1:59) %>% 
+  rename(load=arithmetic.forecast.mean) %>% 
+  select(date,load)
+
+
+
 #export the CSVs
 write.csv(sarima.final.forecast, file="./Competition copy/Output/submission_1.csv", row.names = FALSE)
 
@@ -386,6 +456,16 @@ write.csv(arima.1.final.forecast, file="./Competition copy/Output/submission_4.c
 write.csv(arima.2.final.forecast, file="./Competition copy/Output/submission_5.csv", row.names = FALSE)
 
 write.csv(nn.final.forecast, file="./Competition copy/Output/submission_5.csv", row.names = FALSE)
+
+write.csv(nn.7.final.forecast, file="./Competition copy/Output/submission_6.csv", row.names = FALSE)
+
+write.csv(snaive.7.final.forecast, file="./Competition copy/Output/submission_7.csv", row.names = FALSE)
+
+write.csv(nn.snaive.final.forecast, file="./Competition copy/Output/submission_8.csv", row.names = FALSE)
+
+write.csv(tbats.final.forecast, file="./Competition copy/Output/submission_9.csv", row.names = FALSE)
+
+write.csv(arithmetic.final.forecast, file="./Competition copy/Output/submission_10.csv", row.names = FALSE)
 
 
 ```
